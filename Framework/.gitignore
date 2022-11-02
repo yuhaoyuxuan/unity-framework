@@ -1,0 +1,9 @@
+/Library/
+/Temp/
+/Logs/
+/obj/
+.vscode/
+.vs/
+.collabignore
+*.csproj
+*.dwlt
