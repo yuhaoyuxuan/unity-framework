@@ -1,0 +1,29 @@
+﻿using UnityEngine;
+using UnityEditor;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using System.IO;
+using QuickSheet.Editors;
+
+/// <summary>
+/// !!! Note: Machine generated code !!!
+/// </summary>
+namespace $NamespaceName
+{
+    [CustomEditor(typeof($WorkSheetClassName))]
+    public class $ClassName : BaseExcelEditor<$WorkSheetClassName>
+    {	    
+        public override bool Load()
+        {
+            $WorkSheetClassName targetData = target as $WorkSheetClassName;
+
+            string path = targetData.SheetName;
+            if (!File.Exists(path))
+                return false;
+
+			$LoadAndSetDataClassDataArray
+            return true;
+        }
+    }
+}

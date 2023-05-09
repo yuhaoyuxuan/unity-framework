@@ -1,0 +1,35 @@
+﻿using UnityEngine;
+using UnityEditor;
+using System.Collections;
+using System.IO;
+using QuickSheet.Editors;
+
+/// <summary>
+/// !!! Machine generated code !!!
+/// </summary>
+namespace $NamespaceName
+{
+    public class $AssetPostprocessorClass : AssetPostprocessor 
+    {
+        static readonly string filePath = "$IMPORT_PATH";
+        static readonly string assetFilePath = "$ASSET_PATH";
+    
+        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+        {
+            foreach (string asset in importedAssets) 
+            {
+                if (!filePath.Equals(asset))
+                    continue;
+                
+                $ClassName data = ($ClassName)AssetDatabase.LoadAssetAtPath(assetFilePath, typeof($ClassName));
+                if (data == null) {
+                    data = ScriptableObject.CreateInstance<$ClassName> ();
+                    data.SheetName = filePath;
+                    AssetDatabase.CreateAsset(data, assetFilePath);
+                }
+           
+				$LoadAndSetDataClassDataArray
+            }
+        }
+    }
+}

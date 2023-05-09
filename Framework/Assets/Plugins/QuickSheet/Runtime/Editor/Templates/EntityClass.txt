@@ -1,0 +1,16 @@
+using System;
+using UnityEngine;
+using System.Collections;
+
+/// <summary>
+/// !!! Machine generated code !!!
+/// !!! DO NOT CHANGE Tabs to Spaces !!!
+/// </summary>
+namespace $NamespaceName
+{
+	[Serializable]
+	public class $ClassName
+	{
+		$MemberFields
+	}
+}
