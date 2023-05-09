@@ -57,14 +57,26 @@ namespace Slf
         /// </summary>
         private void LoadLocal()
         {
+
+            //addressables加载方式
+            //Addressables.LoadAssetAsync<object>(Data.Path).Completed += LoadLocalComplete;
+
+
             ResourceRequest rRequest = Resources.LoadAsync(Data.Path);
             rRequest.completed += LoadLocalComplete;
         }
+
+        //addressables加载方式
+        //private void LoadLocalComplete(AsyncOperationHandle<object> ap)
+        //{
+        //    LoadComplete(ap.Result, ap);
+        //}
 
         private void LoadLocalComplete(AsyncOperation ap)
         {
             LoadComplete(((ResourceRequest)ap).asset);
         }
+
 
 
         /// <summary>
@@ -110,11 +122,20 @@ namespace Slf
             Recycle();
         }
 
+        /// <summary>
+        /// 加载完成 addressables加载方式
+        /// </summary>
+        /// <param name="asset"></param>
+        //private void LoadComplete(object asset, AsyncOperationHandle handle)
+        //{
+        //    Data.Handle = handle;
+        //    LoadComplete(asset);
+        //}
+
         private void Recycle()
         {
             Data = null;
             ResManager.Instance.LoadPool.Enqueue(this);
         }
     }
-
 }

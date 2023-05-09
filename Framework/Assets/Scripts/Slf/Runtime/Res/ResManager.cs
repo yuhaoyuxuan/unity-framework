@@ -28,7 +28,6 @@ namespace Slf
         /// </summary>
         Dictionary<int, List<string>> KeyToCachePathList = new Dictionary<int, List<string>>();
 
-
         /// <summary>
         /// 加载资源
         /// </summary>
@@ -143,6 +142,4 @@ namespace Slf
             DataPool.Enqueue(rData);
         }
     }
-
-
 }

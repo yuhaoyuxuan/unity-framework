@@ -57,6 +57,8 @@ namespace Slf
         /// 内容
         /// </summary>
         public object Content;
+        // addressables加载操作处理
+        //public AsyncOperationHandle Handle;
 
         /// <summary>
         /// 是否远程资源
@@ -155,6 +157,17 @@ namespace Slf
             {
                 Resources.UnloadAsset((UnityEngine.Object)Content);
             }
+
+            //addressables 卸载方式
+            //if (IsRemote)
+            //{
+            //    GameObject.Destroy((UnityEngine.Object)Content);
+            //}
+            //else
+            //{
+            //    Addressables.Release(Handle);
+            //}
+
             Callback = null;
             Content = null;
             ResManager.Instance.DelCache(this);
