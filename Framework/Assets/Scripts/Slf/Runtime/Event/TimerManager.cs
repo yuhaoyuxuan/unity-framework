@@ -10,33 +10,26 @@ namespace Slf
     // - Date:        2021/08/03 20:50:17	
     // - Description: 定时器管理单位秒  
     //==========================
-    public class TimerManager : Singleton<TimerManager>
+    public class TimerManager : SingletonComponent<TimerManager>
     {
         //数据队列池
         private MyQueue<TimerData> TimeQueue = new MyQueue<TimerData>();
+
         private List<TimerData> List = new List<TimerData>();
         private Dictionary<int, int> HasDic = new Dictionary<int, int>();
-
-        public TimerManager()
-        {
-            GameObject go = new GameObject("TimerManagerMono");
-            go.AddComponent<TimerManagerMono>();
-            GameObject.DontDestroyOnLoad(go);
-        }
-
 
         /// <summary>
         /// 注册
         /// </summary>
         /// <param name="delay">间隔时间秒</param>
-        /// <param name="targetId">目标id</param>
+        /// <param name="ownerId">注册着id</param>
         /// <param name="callback">回调方法</param>
         /// <param name="loop">是否循环 默认flse</param>
-        public void Register(float delay, int targetId, Action callback, bool loop = false)
+        public void Register(float delay, int ownerId, Action callback, bool loop = false)
         {
-            UnRegister(targetId, callback);
+            UnRegister(ownerId, callback);
             TimerData time = TimeQueue.Dequeue();
-            time.ResetData(delay, targetId, callback, loop);
+            time.ResetData(delay, ownerId, callback, loop);
             AddTime(time);
         }
 
@@ -44,15 +37,15 @@ namespace Slf
         /// 注册
         /// </summary>
         /// <param name="delay">间隔时间秒</param>
-        /// <param name="targetId">目标id</param>
+        /// <param name="ownerId">目标id</param>
         /// <param name="callback">回调方法</param>
         /// <param name="loop">是否循环 默认flse</param>
         /// <param name="param">回调参数</param>
-        public void Register(float delay, int targetId, Action<object> callback, bool loop = false, object param = null)
+        public void Register(float delay, int ownerId, Action<object> callback, bool loop = false, object param = null)
         {
-            UnRegister(targetId, callback);
+            UnRegister(ownerId, callback);
             TimerData time = TimeQueue.Dequeue();
-            time.ResetData(delay, targetId, callback, loop, param);
+            time.ResetData(delay, ownerId, callback, loop, param);
             AddTime(time);
         }
 
@@ -92,11 +85,11 @@ namespace Slf
             for (int i = List.Count - 1; i >= 0; i--)
             {
                 time = List[i];
-                if (time.TargetId == targetId)
+                if (time.OwnerId == targetId)
                 {
                     if (cb == null && cb1 == null
                         || cb != null && cb == time.Callback
-                        || cb1 != null && cb1 == time.Callback1)
+                        || cb1 != null && cb1 == time.CallbackParam)
                     {
                         RemoveTime(time);
                     }
@@ -104,14 +97,57 @@ namespace Slf
             }
         }
 
-        //刷新
-        public void Update()
+        //是否可以移除注册
+        private bool CanRemove(int id)
+        {
+            if (List.Count < 1 || !HasDic.ContainsKey(id) || HasDic[id] < 1)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        //添加注册
+        private void AddTime(TimerData time)
+        {
+            if (HasDic.ContainsKey(time.OwnerId))
+            {
+                HasDic[time.OwnerId]++;
+            }
+            else
+            {
+                HasDic[time.OwnerId] = 1;
+            }
+
+            List.Add(time);
+        }
+
+        //移除注册
+        private void RemoveTime(TimerData time)
+        {
+
+            if (HasDic.ContainsKey(time.OwnerId))
+            {
+                HasDic[time.OwnerId]--;
+                if (HasDic[time.OwnerId] <= 0)
+                {
+                    HasDic.Remove(time.OwnerId);
+                }
+            }
+            List.Remove(time);
+            time.ResetData();
+            TimeQueue.Enqueue(time);
+        }
+
+
+
+        void Update()
         {
             if (List.Count < 1)
             {
                 return;
             }
-
 
             Action cb;
             Action<object> cb1;
@@ -132,7 +168,7 @@ namespace Slf
                 if (time.CurrTime <= 0)
                 {
                     cb = time.Callback;
-                    cb1 = time.Callback1;
+                    cb1 = time.CallbackParam;
                     param = time.Param;
                     if (time.Loop)
                     {
@@ -142,11 +178,11 @@ namespace Slf
                     {
                         if (cb != null)
                         {
-                            UnRegister(time.TargetId, cb);
+                            UnRegister(time.OwnerId, cb);
                         }
                         else
                         {
-                            UnRegister(time.TargetId, cb1);
+                            UnRegister(time.OwnerId, cb1);
                         }
                     }
 
@@ -164,57 +200,6 @@ namespace Slf
                     }
                 }
             }
-        }
-
-        //是否可以移除注册
-        private bool CanRemove(int id)
-        {
-            if (List.Count < 1 || !HasDic.ContainsKey(id) || HasDic[id] < 1)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        //添加注册
-        private void AddTime(TimerData time)
-        {
-            if (HasDic.ContainsKey(time.TargetId))
-            {
-                HasDic[time.TargetId]++;
-            }
-            else
-            {
-                HasDic[time.TargetId] = 1;
-            }
-
-            List.Add(time);
-        }
-
-        //移除注册
-        private void RemoveTime(TimerData time)
-        {
-
-            if (HasDic.ContainsKey(time.TargetId))
-            {
-                HasDic[time.TargetId]--;
-                if (HasDic[time.TargetId] <= 0)
-                {
-                    HasDic.Remove(time.TargetId);
-                }
-            }
-            List.Remove(time);
-            time.ResetData();
-            TimeQueue.Enqueue(time);
-        }
-    }
-
-    public class TimerManagerMono : MonoBehaviour
-    {
-        public void Update()
-        {
-            TimerManager.instance.Update();
         }
     }
 }

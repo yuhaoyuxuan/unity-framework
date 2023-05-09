@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -47,12 +49,17 @@ namespace Slf
         /// </summary>
         private int LayoutGroupType;
 
-        private int oldIdx;
-        private int newIdx;
+        /// <summary>
+        /// 修改数据 刷新显示列表  
+        /// </summary>
+        private bool dataRefresh;
+        /// <summary>
+        /// 滑动刷新 刷新显示列表
+        /// </summary>
+        private bool scrollMoveRefresh;
 
         private List<GameObject> itemPool;
         private List<GameObject> itemList;
-
 
         /**预制体渲染类列表 */
         private List<IAItemRenderer> itemRendererList;
@@ -61,10 +68,17 @@ namespace Slf
         /// </summary>
         private object[] datas;
 
+
+        /// <summary>
+        /// 点击回调
+        /// </summary>
+        private Action<IAItemRenderer> itemClickCb;
+
+        private bool isInit;
+        private bool isStart;
         protected override void Awake()
         {
             onValueChanged.AddListener(ScrollMove);
-            InitData();
         }
 
         protected override void OnDestroy()
@@ -74,6 +88,12 @@ namespace Slf
             base.OnDestroy();
         }
 
+        protected override void Start()
+        {
+            base.Start();
+            InitData();
+        }
+
         private void InitData()
         {
             itemPool = new List<GameObject>();
@@ -81,6 +101,12 @@ namespace Slf
             itemRendererList = new List<IAItemRenderer>();
             contentLayout = content.GetComponent<LayoutGroup>();
             contentLayout.enabled = false;
+            ContentSizeFitter cs = content.GetComponent<ContentSizeFitter>();
+            if (cs != null)
+            {
+                cs.enabled = false;
+            }
+
 
             RectTransform itemRT = ItemRenderer.GetComponent<RectTransform>();
             offsetContentPos = new Vector2(-(viewport.sizeDelta.x / 2), viewport.sizeDelta.y / 2);
@@ -109,8 +135,8 @@ namespace Slf
 
             //垂直、水平最大预制体数量
             RectTransform scrollRT = (RectTransform)gameObject.transform;
-            horizontalCount = Mathf.CeilToInt(scrollRT.sizeDelta.x / itemW) + 1;
-            verticalCount = Mathf.CeilToInt(scrollRT.sizeDelta.y / itemH) + 1;
+            horizontalCount = Mathf.CeilToInt(scrollRT.rect.width / itemW) + 1;
+            verticalCount = Mathf.CeilToInt(scrollRT.rect.height / itemH) + 1;
 
             if (isGrid)
             {
@@ -125,6 +151,20 @@ namespace Slf
                     verticalCount = Mathf.FloorToInt(scrollRT.sizeDelta.y / itemH);
                 }
             }
+            isInit = true;
+            if (datas != null)
+            {
+                RefreshData(datas);
+            }
+        }
+
+        /// <summary>
+        /// 设置子项点击回调 子项 必须有 AButton 组件
+        /// </summary>
+        /// <param name="cb"></param>
+        public void SetItemTap(Action<IAItemRenderer> cb)
+        {
+            itemClickCb = cb;
         }
 
         /// <summary>
@@ -156,16 +196,30 @@ namespace Slf
             {
                 return;
             }
-            oldIdx = 1;
             datas = ds;
+            if (!isInit)
+            {
+                return;
+            }
+            isStart = true;
             RefreshContentSize();
-            AddItem();
-            RefreshView();
-            TimerManager.instance.Register(0.05f, GetHashCode(), RefreshView, true);
+            StartCoroutine(AddItem());
+            dataRefresh = true;
         }
 
+        private void Update()
+        {
+            if (!isStart || !scrollMoveRefresh)
+            {
+                return;
+            }
+            RefreshView();
+        }
+
+
+        WaitForSeconds wait = new WaitForSeconds(0.05f);
         /**添加预制体 */
-        private void AddItem()
+        private IEnumerator AddItem()
         {
             int len = 0;
             switch (LayoutGroupType)
@@ -191,15 +245,29 @@ namespace Slf
                     {
                         child = itemPool[0];
                         itemPool.RemoveAt(0);
+                        child.transform.SetParent(content, false);
+                        itemList.Add(child);
+                        itemRendererList.Add(child.GetComponent<IAItemRenderer>());
+                        //child.transform.localPosition = new Vector3(-3000f, 0);
                     }
                     else
                     {
                         child = GameObject.Instantiate(ItemRenderer);
-                    }
-                    child.transform.SetParent(content, false);
+                        child.transform.SetParent(content, false);
+                        //child.transform.localPosition = new Vector3(-3000f, 0);
+                        if (itemClickCb != null)
+                        {
+                            if (child.GetComponent<AButton>())
+                            {
+                                child.GetComponent<AButton>().SetClickCallback(itemClickCb, child.GetComponent<IAItemRenderer>());
+                            }
+                        };
 
-                    itemList.Add(child);
-                    itemRendererList.Add(child.GetComponent<IAItemRenderer>());
+                        itemList.Add(child);
+                        itemRendererList.Add(child.GetComponent<IAItemRenderer>());
+                        scrollMoveRefresh = true;
+                        yield return wait;
+                    }
                 }
             }
             else
@@ -209,13 +277,15 @@ namespace Slf
                 {
                     child = itemList[cL - 1];
                     child.transform.SetParent(null, false);
-
+                    child.transform.localPosition = Vector3.zero;
                     itemList.RemoveAt(cL - 1);
                     itemRendererList.RemoveAt(cL - 1);
                     itemPool.Add(child);
                     cL = content.childCount;
                 }
             }
+            scrollMoveRefresh = true;
+            yield break;
         }
 
         /// <summary>
@@ -230,9 +300,11 @@ namespace Slf
             {
                 case 0:
                     contentSize.x = contentLayout.padding.left + dataLength * itemW + contentLayout.padding.right;
+                    //horizontalNormalizedPosition = 0;
                     break;
                 case 1:
                     contentSize.y = contentLayout.padding.top + dataLength * itemH + contentLayout.padding.bottom;
+                    //verticalNormalizedPosition = 0;
                     break;
                 case 2:
                     GridLayoutGroup grid = (GridLayoutGroup)contentLayout;
@@ -259,16 +331,6 @@ namespace Slf
         /// </summary>
         public void RefreshView()
         {
-            if (oldIdx == newIdx)
-            {
-                return;
-            }
-
-            if (oldIdx > 9999999)
-            {
-                oldIdx = 1;
-            }
-            newIdx = oldIdx;
             switch (LayoutGroupType)
             {
                 case 0:
@@ -281,6 +343,8 @@ namespace Slf
                     RefreshGrid();
                     break;
             }
+            scrollMoveRefresh = false;
+            dataRefresh = false;
         }
 
         /// <summary>
@@ -304,14 +368,18 @@ namespace Slf
             int idx;
             float offsetX = content.sizeDelta.x / 2;
             GameObject item;
+
+            Vector2 posV2;
             for (var i = 0; i < itemListLen; i++)
             {
                 idx = (start + i) % itemListLen;
                 item = itemList[idx];
                 tempV = startPos.x + ((start + i) * itemW) + offsetX;
-                if (item.transform.localPosition.x != tempV)
+                if (item.transform.localPosition.x != tempV || dataRefresh)
                 {
-                    item.transform.SetLocalPosX(tempV);
+                    posV2 = item.transform.localPosition;
+                    posV2.x = tempV;
+                    item.transform.localPosition = posV2;
                     itemRendererList[idx].SubData = datas[start + i];
                 }
             }
@@ -338,14 +406,18 @@ namespace Slf
             int idx;
             float offsetY = content.sizeDelta.y / 2;
             GameObject item;
+
+            Vector2 posV2;
             for (var i = 0; i < itemListLen; i++)
             {
                 idx = (start + i) % itemListLen;
                 item = itemList[idx];
                 tempV = startPos.y + (-(start + i) * itemH) - offsetY;
-                if (item.transform.localPosition.y != tempV)
+                if (item.transform.localPosition.y != tempV || dataRefresh)
                 {
-                    item.transform.SetLocalPosY(tempV);
+                    posV2 = item.transform.localPosition;
+                    posV2.y = tempV;
+                    item.transform.localPosition = posV2;
                     itemRendererList[idx].SubData = datas[start + i];
                 }
             }
@@ -407,7 +479,7 @@ namespace Slf
                     tempY = startPos.y + -((start + i) / horizontalCount) * itemH - offsetY;
                 }
 
-                if (item.transform.localPosition.y != tempY || item.transform.localPosition.x != tempX)
+                if (item.transform.localPosition.y != tempY || item.transform.localPosition.x != tempX || dataRefresh)
                 {
                     posV.x = tempX;
                     posV.y = tempY;
@@ -422,22 +494,28 @@ namespace Slf
         /// </summary>
         public void DestroyChild()
         {
-            for (int i = 0; i < itemPool.Count; i++)
+            if (itemPool != null)
             {
-                GameObject.Destroy(itemPool[i].gameObject);
+                for (int i = 0; i < itemPool.Count; i++)
+                {
+                    GameObject.Destroy(itemPool[i].gameObject);
+                }
+                itemPool.Clear();
             }
 
-            for (int i = 0; i < itemList.Count; i++)
+            if (itemList != null)
             {
-                GameObject.Destroy(itemList[i].gameObject);
+                for (int i = 0; i < itemList.Count; i++)
+                {
+                    GameObject.Destroy(itemList[i].gameObject);
+                }
+                itemList.Clear();
             }
-            itemPool.Clear();
-            itemList.Clear();
         }
 
         private void ScrollMove(Vector2 v2)
         {
-            oldIdx++;
+            scrollMoveRefresh = true;
         }
     }
 

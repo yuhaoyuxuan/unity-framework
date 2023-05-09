@@ -4,22 +4,13 @@ using UnityEngine;
 
 namespace Slf
 {
-
-    /// <summary>
-    /// mono用于协程
-    /// </summary>
-    public class ResManagerMono : MonoBehaviour { }
     //==========================
     // - Author:      slf         
     // - Date:        2022/10/30 15:20:13
     // - Description: 资源管理
     //==========================
-    public class ResManager : Singleton<ResManager>
+    public class ResManager : SingletonComponent<ResManager>
     {
-        /// <summary>
-        /// mono
-        /// </summary>
-        public MonoBehaviour Mono;
         /// <summary>
         /// 加载池
         /// </summary>
@@ -37,12 +28,6 @@ namespace Slf
         /// </summary>
         Dictionary<int, List<string>> KeyToCachePathList = new Dictionary<int, List<string>>();
 
-        public ResManager()
-        {
-            GameObject go = new GameObject("ResManagerMono");
-            GameObject.DontDestroyOnLoad(go);
-            Mono = go.AddComponent<ResManagerMono>();
-        }
 
         /// <summary>
         /// 加载资源

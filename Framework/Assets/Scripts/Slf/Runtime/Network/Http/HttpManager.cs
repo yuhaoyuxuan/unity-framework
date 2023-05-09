@@ -9,17 +9,9 @@ namespace Slf
     // - Date:        2021/07/15 18:19:27	
     // - Description: http通信管理类
     //==========================
-    public class HttpManager : Singleton<HttpManager>
+    public class HttpManager : SingletonComponent<HttpManager>
     {
         public MyQueue<Http> HttpQueue = new MyQueue<Http>();//http队列
-        public MonoBehaviour HttpMono;
-        public HttpManager()
-        {
-            GameObject go = new GameObject("HttpMono");
-            HttpMono = go.AddComponent<MonoBehaviour>();
-            GameObject.DontDestroyOnLoad(go);
-        }
-
         /// <summary>
         /// 发送get请求
         /// </summary>

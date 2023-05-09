@@ -17,19 +17,19 @@ namespace Slf
         /// <summary>
         /// 类全路径
         /// </summary>
-        public string ClassName;
+        public string ClassPath;
         /// <summary>
         /// 预制体路径
         /// </summary>
         public string PrefabPath;
         /// <summary>
-        /// 弹出效果
-        /// </summary>
-        public PopupType PopupType;
-        /// <summary>
         /// 层级类型
         /// </summary>
         public LayerType LayerType;
+        /// <summary>
+        /// 弹出效果
+        /// </summary>
+        public PopupType PopupType;
         /// <summary>
         /// 关闭面板是否销毁
         /// </summary>
@@ -37,7 +37,7 @@ namespace Slf
         /// <summary>
         /// 是否显示半透黑底
         /// </summary>
-        public bool IsDarkRect;
+        public bool IsBlackMask;
         /// <summary>
         /// 是否同步显示加载loading  addLayer后移除loading 
         /// </summary>
@@ -47,20 +47,27 @@ namespace Slf
         /// </summary>
         public object Data;
 
-        public UIData(params object[] args)
+        /// <summary>
+        /// ui数据
+        /// </summary>
+        /// <param name="uiId">界面唯一id</param>
+        /// <param name="classPath">类路径</param>
+        /// <param name="prefabPath">预制体路径</param>
+        /// <param name="layer">层级</param>
+        /// <param name="popup">弹出效果</param>
+        /// <param name="destroy">关闭面板是否销毁</param>
+        /// <param name="blackMask">半透明黑底</param>
+        /// <param name="sync">是否同步显示</param>
+        public UIData(int uiId,string classPath,string prefabPath,LayerType layer = LayerType.Panel,PopupType popup = PopupType.None,bool destroy = false ,bool blackMask = false,bool sync = false)
         {
-            if (args.Length == 0)
-            {
-                return;
-            }
-            ID = (int)args[0];
-            ClassName = (string)args[1];
-            PrefabPath = (string)args[2];
-            PopupType = (PopupType)args[3];
-            LayerType = (LayerType)args[4];
-            IsDestroy = (bool)args[5];
-            IsDarkRect = (bool)args[6];
-            IsSync = (bool)args[7];
+            ID = uiId;
+            ClassPath = classPath;
+            PrefabPath = prefabPath;
+            LayerType = layer;
+            PopupType = popup;
+            IsDestroy = destroy;
+            IsBlackMask = blackMask;
+            IsSync = sync;
         }
     }
 

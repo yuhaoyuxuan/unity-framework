@@ -10,39 +10,64 @@ namespace Slf
     //==========================
     public class SubscribeData
     {
-        public string MsgId;
-        public int TargetId;
-        public Action<object> Callback0;
-        public Action Callback1;
-        public bool Once;
-
-        public object Param;
+        /// <summary>
+        /// 消息id
+        /// </summary>
+        public string MessageId;
+        /// <summary>
+        /// 持有者id
+        /// </summary>
+        public int OwnerId;
+        /// <summary>
+        /// 带参 回调
+        /// </summary>
+        public Action<object> CallbackParam;
+        /// <summary>
+        /// 无参 回调
+        /// </summary>
+        public Action Callback;
 
         public void ResetData()
         {
-            MsgId = null;
-            TargetId = -1;
-            Callback0 = null;
-            Callback1 = null;
-            Once = false;
-            Param = null;
+            MessageId = null;
+            OwnerId = -1;
+            CallbackParam = null;
+            Callback = null;
         }
 
-        public void ResetData(string d1 = null, int d2 = 0, Action<object> d3 = null, bool d4 = false)
+        public void ResetData(string d1 = null, int d2 = 0, Action<object> d3 = null)
         {
-            MsgId = d1;
-            TargetId = d2;
-            Callback0 = d3;
-            Once = d4;
-            Param = null;
+            MessageId = d1;
+            OwnerId = d2;
+            CallbackParam = d3;
         }
-        public void ResetData(string d1 = null, int d2 = 0, Action d3 = null, bool d4 = false)
+        public void ResetData(string d1 = null, int d2 = 0, Action d3 = null)
         {
-            MsgId = d1;
-            TargetId = d2;
-            Callback1 = d3;
-            Once = d4;
-            Param = null;
+            MessageId = d1;
+            OwnerId = d2;
+            Callback = d3;
+        }
+    }
+
+    /// <summary>
+    /// 发布回调数据结构 减少GC
+    /// </summary>
+    public class CallbackSubribeData
+    {
+        /// <summary>
+        /// 消息id
+        /// </summary>
+        public string MessageId;
+        /// <summary>
+        /// 回调数据
+        /// </summary>
+        public object Param;
+
+        public CallbackSubribeData Init(string id, object param)
+        {
+            MessageId = id;
+            Param = param;
+            return this;
         }
     }
 }

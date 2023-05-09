@@ -10,17 +10,29 @@ namespace Slf
     //==========================
     public class TimerData
     {
-        //执行间隔 秒
+        /// <summary>
+        /// 执行间隔 秒
+        /// </summary>
         public float Delay;
-        //持有者id
-        public int TargetId;
-        //完成回调
+        /// <summary>
+        /// 持有者id 
+        /// </summary>
+        public int OwnerId;
+        /// <summary>
+        /// 回调
+        /// </summary>
         public Action Callback;
-        //完成回调 回参
-        public Action<object> Callback1;
-        //是否循环
+        /// <summary>
+        /// 带参回调
+        /// </summary>
+        public Action<object> CallbackParam;
+        /// <summary>
+        /// 是否循环
+        /// </summary>
         public bool Loop;
-        //回调参数
+        /// <summary>
+        /// 回调参数
+        /// </summary>
         public object Param;
 
         //随着时间而变化
@@ -29,9 +41,9 @@ namespace Slf
         public void ResetData()
         {
             Delay = 0.0f;
-            TargetId = 0;
+            OwnerId = 0;
             Callback = null;
-            Callback1 = null;
+            CallbackParam = null;
             Loop = false;
             CurrTime = 0.0f;
             Param = null;
@@ -40,7 +52,7 @@ namespace Slf
         public void ResetData(float d1 = 0, int d2 = 0, Action d3 = null, bool d4 = false, object d5 = null)
         {
             Delay = d1;
-            TargetId = d2;
+            OwnerId = d2;
             Callback = d3;
             Loop = d4;
             CurrTime = Delay;
@@ -50,8 +62,8 @@ namespace Slf
         public void ResetData(float d1 = 0, int d2 = 0, Action<object> d3 = null, bool d4 = false, object d5 = null)
         {
             Delay = d1;
-            TargetId = d2;
-            Callback1 = d3;
+            OwnerId = d2;
+            CallbackParam = d3;
             Loop = d4;
             CurrTime = Delay;
             Param = d5;

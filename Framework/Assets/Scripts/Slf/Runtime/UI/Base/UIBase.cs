@@ -23,7 +23,6 @@ namespace Slf
         protected object Data
         {
             get { return UiData.Data; }
-            set { }
         }
 
         /// <summary>
@@ -42,9 +41,6 @@ namespace Slf
             PreloadCb = null;
             RemoveView();
         }
-
-        public virtual void InitView() { }
-        public virtual void RemoveView() { }
 
 
         /// <summary>
@@ -82,8 +78,17 @@ namespace Slf
         /// </summary>
         public void Close()
         {
-            UIManager.instance.CloseView(UiData.ID);
+            UIManager.Instance.CloseView(UiData.ID);
         }
+
+        /// <summary>
+        /// 每次添加到显示列表都会调用
+        /// </summary>
+        public virtual void InitView() { }
+        /// <summary>
+        /// 每次移除显示列表都会调用
+        /// </summary>
+        public virtual void RemoveView() { }
     }
 
 }

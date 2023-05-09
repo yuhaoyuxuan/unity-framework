@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using Slf;
+using System.Threading;
 /// <summary>
 /// 测试虚拟列表和普通列表的drawCall
 /// </summary>
@@ -11,13 +12,13 @@ public class ListScene : MonoBehaviour
     public AVirtualScrollView sv2;//虚拟列表 水平
     public AVirtualScrollView sv3;//虚拟列表 水平格子
     public AItemList list;        //普通列表
-    // Start is called before the first frame update
+
     void Start()
     {
         Application.targetFrameRate = 60;
 
-        string[] ds = new string[100];
-        for (int i = 0; i < 100; i++)
+        string[] ds = new string[1000];
+        for (int i = 0; i < 1000; i++)
         {
             ds[i] = i + "";
         }
@@ -28,4 +29,6 @@ public class ListScene : MonoBehaviour
         sv3.RefreshData(ds);
         list.RefreshData(ds);
     }
+
+ 
 }

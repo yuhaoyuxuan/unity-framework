@@ -77,7 +77,7 @@ namespace Slf
         {
             if (Sound != ButtonSound.Empty)
             {
-                AudioManager.instance.PlayAudio("Sound/Button");
+                AudioManager.Instance.PlayAudio("Audio/Button");
             }
             if (cb1 != null)
             {

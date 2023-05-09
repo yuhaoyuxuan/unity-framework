@@ -145,7 +145,6 @@ namespace Slf
                 item = itemGoList[i];
                 IAItemRenderer temp = (IAItemRenderer)item;
                 temp.SubData = data;
-
                 if (cb != null)
                 {
                     if (item.GetComponent<AButton>())

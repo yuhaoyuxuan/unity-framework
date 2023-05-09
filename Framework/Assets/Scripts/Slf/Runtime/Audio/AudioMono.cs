@@ -83,7 +83,7 @@ public class AudioMono
 
         if(loopNum > 0)
         {
-            TimerManager.instance.Register(delay + aSource.clip.length, GetHashCode(), PlayComplete);
+            TimerManager.Instance.Register(delay + aSource.clip.length, GetHashCode(), PlayComplete);
         }
     }
 

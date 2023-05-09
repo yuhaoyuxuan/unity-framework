@@ -12,6 +12,9 @@ namespace Slf
     //==========================
     public partial class UIManager : Singleton<UIManager>
     {
+        /// <summary>
+        /// ui控制器 注册绑定
+        /// </summary>
         public UIController UIController;
 
         /// <summary>
@@ -44,8 +47,10 @@ namespace Slf
             UIController = new UIController();
             uiLayer.InitLayer(root);
             UIController.Init();
-            var t = TimerManager.instance;
-            var p = PubSubManager.instance;
+
+            TimerManager.Instance.Init();
+            ResManager.Instance.Init();
+            PubSubManager.Instance.Init();
         }
 
         /// <summary>
@@ -129,7 +134,7 @@ namespace Slf
 
                 prefab.gameObject.SetActive(false);
 
-                Type type = Type.GetType(uiData.ClassName);
+                Type type = Type.GetType(uiData.ClassPath);
                 ui = prefab.AddComponent(type) as UIBase;
                 ui.UiData = uiData;
                 prefab.gameObject.SetActive(true);
@@ -143,7 +148,7 @@ namespace Slf
             ui.Preload(() =>
             {
 
-                Debug.Log("open = " + uiData.ClassName);
+                Debug.Log("open = " + uiData.ClassPath);
                 if (!ui.transform.parent)
                 {
                     uiLayer.AddLayer(ui);
@@ -162,7 +167,7 @@ namespace Slf
             if (openMap.ContainsKey(id))
             {
                 UIBase ui = openMap[id];
-                Debug.Log("close = " + ui.UiData.ClassName);
+                Debug.Log("close = " + ui.UiData.ClassPath);
                 uiLayer.RemoveLayer(ui);
                 ui.RmoveLayer();
                 //销毁

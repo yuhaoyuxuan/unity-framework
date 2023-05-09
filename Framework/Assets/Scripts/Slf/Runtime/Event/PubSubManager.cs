@@ -9,7 +9,7 @@ namespace Slf
     // - Date:        2021/08/02 15:05:27		
     // - Description: 发布/订阅
     //==========================
-    public class PubSubManager : Singleton<PubSubManager>
+    public class PubSubManager : SingletonComponent<PubSubManager>
     {
         //订阅消息map
         private Dictionary<string, List<SubscribeData>> MsgMap = new Dictionary<string, List<SubscribeData>>();
@@ -17,28 +17,26 @@ namespace Slf
         private Dictionary<int, List<string>> IdToMsgs = new Dictionary<int, List<string>>();
         //数据队列
         private MyQueue<SubscribeData> SDQueue = new MyQueue<SubscribeData>();
+      
         /// <summary>
-        /// 带回调的队列
+        /// 回调队列(对象池)
         /// </summary>
-        private List<object[]> cbList = new List<object[]>();
-
-        public PubSubManager()
-        {
-            GameObject go = new GameObject("PubSubMono");
-            go.AddComponent<PubSubMono>();
-            GameObject.DontDestroyOnLoad(go);
-        }
+        private MyQueue<CallbackSubribeData> callbackQueuePool = new MyQueue<CallbackSubribeData>();
+        /// <summary>
+        /// 等待主线程回调数据列表 
+        /// </summary>
+        private List<CallbackSubribeData> waitCallbackList = new List<CallbackSubribeData>();
 
         /// <summary>
         /// 订阅消息
         /// </summary>
         /// <param name="msgId">消息</param>
-        /// <param name="targetId">持有者id</param>
+        /// <param name="ownerId">持有者id</param>
         /// <param name="callback">回调方法</param>
-        public void Register(string msgId, int targetId, Action<object> callback)
+        public void Register(string msgId, int ownerId, Action<object> callback)
         {
             SubscribeData temp = SDQueue.Dequeue();
-            temp.ResetData(msgId, targetId, callback);
+            temp.ResetData(msgId, ownerId, callback);
             AddSub(temp);
         }
 
@@ -46,12 +44,12 @@ namespace Slf
         /// 订阅消息
         /// </summary>
         /// <param name="msgId">消息</param>
-        /// <param name="targetId">持有者id</param>
+        /// <param name="ownerId">持有者id</param>
         /// <param name="callback">回调方法</param>
-        public void Register(string msgId, int targetId, Action callback)
+        public void Register(string msgId, int ownerId, Action callback)
         {
             SubscribeData temp = SDQueue.Dequeue();
-            temp.ResetData(msgId, targetId, callback);
+            temp.ResetData(msgId, ownerId, callback);
             AddSub(temp);
         }
 
@@ -62,25 +60,24 @@ namespace Slf
         /// <param name="param">透传参数</param>
         public void Publish(string msgId, object param = null)
         {
-            cbList.Add(new object[] { msgId, param });
+            waitCallbackList.Add(callbackQueuePool.Dequeue().Init(msgId, param));
         }
-
 
         /// <summary>
         /// 删除全部目标id的所有消息订阅
         /// </summary>
-        /// <param name="targetId"></param>
-        public void unRegister(int targetId)
+        /// <param name="ownerId"></param>
+        public void unRegister(int ownerId)
         {
-            if (IdToMsgs.ContainsKey(targetId))
+            if (IdToMsgs.ContainsKey(ownerId))
             {
-                List<string> msgIds = IdToMsgs[targetId];
+                List<string> msgIds = IdToMsgs[ownerId];
                 for (int i = 0; i < msgIds.Count; i++)
                 {
-                    unRegister(msgIds[i], targetId);
+                    unRegister(msgIds[i], ownerId);
                 }
                 msgIds.Clear();
-                IdToMsgs.Remove(targetId);
+                IdToMsgs.Remove(ownerId);
             }
         }
 
@@ -88,8 +85,8 @@ namespace Slf
         /// 删除目标id的单个消息订阅
         /// </summary>
         /// <param name="msgId"></param>
-        /// <param name="targetId"></param>
-        public void unRegister(string msgId, int targetId)
+        /// <param name="ownerId"></param>
+        public void unRegister(string msgId, int ownerId)
         {
             List<SubscribeData> temps;
             SubscribeData temp;
@@ -99,7 +96,7 @@ namespace Slf
                 for (int i = 0; i < temps.Count; i++)
                 {
                     temp = temps[i];
-                    if (temp.TargetId == targetId)
+                    if (temp.OwnerId == ownerId)
                     {
                         temps.Remove(temp);
                         temp.ResetData();
@@ -108,44 +105,28 @@ namespace Slf
                 }
             }
         }
-
-
-        public void Update()
-        {
-            if (cbList.Count < 1)
-            {
-                return;
-            }
-            object[] datas;
-            while (cbList.Count > 0)
-            {
-                datas = cbList[0];
-                cbList.RemoveAt(0);
-                Notice(datas);
-            }
-        }
       
 
         private void AddSub(SubscribeData temp)
         {
             List<SubscribeData> temps;
-            if (!MsgMap.ContainsKey(temp.MsgId))
+            if (!MsgMap.ContainsKey(temp.MessageId))
             {
                 temps = new List<SubscribeData>();
                 temps.Add(temp);
-                MsgMap.Add(temp.MsgId, temps);
+                MsgMap.Add(temp.MessageId, temps);
             }
             else
             {
-                temps = MsgMap[temp.MsgId];
+                temps = MsgMap[temp.MessageId];
                 SubscribeData oldTemp;
                 for (int i = 0; i < temps.Count; i++)
                 {
                     oldTemp = temps[i];
                     /// 是否有相同消息 id targetid 和cb
-                    if (temp.MsgId == oldTemp.MsgId && temp.TargetId == oldTemp.TargetId && (temp.Callback0 == oldTemp.Callback0 || temp.Callback1 == oldTemp.Callback1))
+                    if (temp.MessageId == oldTemp.MessageId && temp.OwnerId == oldTemp.OwnerId && (temp.CallbackParam == oldTemp.CallbackParam || temp.Callback == oldTemp.Callback))
                     {
-                        Debug.LogError("相同订阅=====" + temp.MsgId);
+                        Debug.LogError("相同订阅=====" + temp.MessageId);
                         temp.ResetData();
                         SDQueue.Enqueue(temp);
                         return;
@@ -156,60 +137,57 @@ namespace Slf
                 temps.Add(temp);
             }
             List<string> msgs;
-            if (!IdToMsgs.ContainsKey(temp.TargetId))
+            if (!IdToMsgs.ContainsKey(temp.OwnerId))
             {
                 msgs = new List<string>();
-                msgs.Add(temp.MsgId);
-                IdToMsgs.Add(temp.TargetId, msgs);
+                msgs.Add(temp.MessageId);
+                IdToMsgs.Add(temp.OwnerId, msgs);
             }
             else
             {
-                msgs = IdToMsgs[temp.TargetId];
-                msgs.Add(temp.MsgId);
+                msgs = IdToMsgs[temp.OwnerId];
+                msgs.Add(temp.MessageId);
             }
         }
 
 
-       
-
-        //todo 以主线方式 调用 主线层的方法
-        private void Notice(object[] datas)
+        void Update()
         {
-            string msgId = (string)datas[0];
-            object param = datas[1];
-
-            if (MsgMap.ContainsKey(msgId))
+            if (waitCallbackList.Count < 1)
             {
-                List<SubscribeData> temps = MsgMap[msgId];
+                return;
+            }
+            while (waitCallbackList.Count > 0)
+            {
+                Notice(waitCallbackList[0]);
+                waitCallbackList.RemoveAt(0);
+            }
+        }
+
+        //主线程调用
+        private void Notice(CallbackSubribeData data)
+        {
+            if (MsgMap.ContainsKey(data.MessageId))
+            {
+                List<SubscribeData> temps = MsgMap[data.MessageId];
                 SubscribeData temp;
                 if (temps != null && temps.Count > 0)
                 {
                     for (int i = 0; i < temps.Count; i++)
                     {
                         temp = temps[i];
-                        if (param != null && temp.Callback0 != null)
+                        if(temp.CallbackParam != null)
                         {
-                            temp.Callback0(param);
-                        }
-                        else if (temp.Callback0 != null)
-                        {
-                            temp.Callback0(null);
+                            temp.CallbackParam(data.Param);
                         }
                         else
                         {
-                            temp.Callback1();
+                            temp.Callback();
                         }
                     }
                 }
             }
-        }
-    }
-
-    public class PubSubMono : MonoBehaviour
-    {
-        public void Update()
-        {
-            PubSubManager.instance.Update();
+            callbackQueuePool.Enqueue(data);
         }
     }
 }

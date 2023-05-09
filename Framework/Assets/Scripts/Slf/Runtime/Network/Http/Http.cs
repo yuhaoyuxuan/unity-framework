@@ -20,7 +20,7 @@ namespace Slf
             URequest.SetRequestHeader("Content-Type", "application/json;charset=UTF-8");
             URequest.downloadHandler = new DownloadHandlerBuffer();
             URequest.timeout = Data.Timeout;
-            HttpManager.instance.HttpMono.StartCoroutine(SendMsg());
+            HttpManager.Instance.StartCoroutine(SendMsg());
         }
 
         // 	/**发送请求 */
@@ -76,7 +76,7 @@ namespace Slf
             URequest.Dispose();
             Data.ResetData();
             URequest = null;
-            HttpManager.instance.HttpQueue.Enqueue(this);
+            HttpManager.Instance.HttpQueue.Enqueue(this);
         }
     }
 }

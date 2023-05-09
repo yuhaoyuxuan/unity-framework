@@ -107,7 +107,7 @@ namespace Slf
                 {
                     layerIdx = 0;
                 }
-                if (ui.UiData.IsDarkRect)
+                if (ui.UiData.IsBlackMask)
                 {
                     black.transform.SetSiblingIndex(layerIdx);
                     black.SetActive(true);

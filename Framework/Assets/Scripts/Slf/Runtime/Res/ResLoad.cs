@@ -78,7 +78,7 @@ namespace Slf
                 Debug.LogError("Load Remot Resource Error URL =" + Data.Path);
                 return;
             }
-            ResManager.instance.Mono.StartCoroutine(LoadFromWeb(Data.Path));
+            ResManager.Instance.StartCoroutine(LoadFromWeb(Data.Path));
         }
 
         IEnumerator LoadFromWeb(string url)
@@ -106,14 +106,14 @@ namespace Slf
         {
             Data.Content = asset;
             Data.Finish();
-            ResManager.instance.AddCache(Data);
+            ResManager.Instance.AddCache(Data);
             Recycle();
         }
 
         private void Recycle()
         {
             Data = null;
-            ResManager.instance.LoadPool.Enqueue(this);
+            ResManager.Instance.LoadPool.Enqueue(this);
         }
     }
 

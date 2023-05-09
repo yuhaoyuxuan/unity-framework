@@ -114,7 +114,7 @@ namespace Slf
         public void AddRef()
         {
             RefCount++;
-            ResManager.instance.AddRefRecord(this);
+            ResManager.Instance.AddRefRecord(this);
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace Slf
             }
             Callback = null;
             Content = null;
-            ResManager.instance.DelCache(this);
+            ResManager.Instance.DelCache(this);
         }
     }
 

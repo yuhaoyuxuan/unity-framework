@@ -19,19 +19,8 @@ namespace Slf
         /// </summary>
         public void Init()
         {
-            Register(new UIData(1, "Home", "Prefabs/Home", PopupType.None, LayerType.Scene, false, false, false));
-            Register(new UIData(2, "LevelSelect", "Prefabs/LevelSelect", PopupType.MinToMax, LayerType.Sole, true, true, false));
-            Register(new UIData(3, "Bargain", "Prefabs/Bargain", PopupType.None, LayerType.Sole, true, false, false));
-            Register(new UIData(4, "Bag", "Prefabs/Bag/Bag", PopupType.MinToMax, LayerType.Panel, true, true, false));
-            Register(new UIData(5, "Seting", "Prefabs/Seting", PopupType.MinToMax, LayerType.Panel, true, true, false));
-
-            Register(new UIData(8, "Dialog", "Prefabs/Dialog", PopupType.None, LayerType.Panel, true, true, false));
-            Register(new UIData(9, "Result", "Prefabs/Result/Result", PopupType.None, LayerType.Panel, true, false, false));
-            Register(new UIData(10, "LoadingAnimation", "Prefabs/LoadingAnimation", PopupType.None, LayerType.Loading, true, false, false));
-            Register(new UIData(11, "MessageTips", "Prefabs/Common/MessageTips", PopupType.None, LayerType.Loading, false, false, false));
-
-
-            Register(new UIData(20, "GameGetProp", "Game/Prafeb/GameGetProp", PopupType.MinToMax, LayerType.Panel, true, false, false));
+            Register(new UIData(1, "TestUI1", "Prefabs/TestUI1", LayerType.Scene, PopupType.None,  false, false, false));
+            //Register(new UIData(2, "TestNameSpace.TestUI2", "Prefabs/TestUI2", LayerType.Panel, PopupType.MinToMax,  true));
         }
 
         /// <summary>

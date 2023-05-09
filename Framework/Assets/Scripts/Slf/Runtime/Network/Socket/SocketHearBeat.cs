@@ -40,14 +40,14 @@ namespace Slf
         public void start()
         {
             curMissCount = 0;
-            TimerManager.instance.Register(interval, GetHashCode(), send, true);
+            TimerManager.Instance.Register(interval, GetHashCode(), send, true);
             send();
         }
 
         public void stop()
         {
             curMissCount = 0;
-            TimerManager.instance.UnRegister(GetHashCode());
+            TimerManager.Instance.UnRegister(GetHashCode());
         }
 
         public void receive()

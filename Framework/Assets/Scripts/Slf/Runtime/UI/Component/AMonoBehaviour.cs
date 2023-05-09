@@ -21,8 +21,8 @@ namespace Slf
 
             int hashCode = GetHashCode();
             ComponentFindUtil.Destroy(transform);
-            TimerManager.instance.UnRegister(hashCode);
-            PubSubManager.instance.unRegister(hashCode);
+            TimerManager.Instance.UnRegister(hashCode);
+            PubSubManager.Instance.unRegister(hashCode);
         }
 
         /**初始化事件 只会调用一次*/

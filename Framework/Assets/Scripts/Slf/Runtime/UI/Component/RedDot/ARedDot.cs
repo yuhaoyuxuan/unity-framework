@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 namespace Slf
 {
-
     //==========================
     // - Author:      slf         
     // - Date:        2021/09/12 13:20:53	
@@ -12,39 +11,39 @@ namespace Slf
         /// <summary>
         /// 红点id
         /// </summary>
-        public int DotId;
+        [SerializeField] private int dotId;
         public int RedDotId
         {
             get
             {
-                return DotId;
+                return dotId;
             }
             set
             {
-                if (value == 0 && DotId != 0)
+                if (value == 0 && dotId != 0)
                 {
-                    RedDotManager.instance.UnRegisterRedDot(DotId, this);
+                    RedDotManager.Instance.UnRegisterRedDot(dotId, this);
                 }
-                DotId = value;
-                RedDotManager.instance.RegisterRedDot(DotId, this);
+                dotId = value;
+                RedDotManager.Instance.RegisterRedDot(dotId, this);
             }
         }
 
 
         void Start()
         {
-            RedDotId = DotId;
+            RedDotId = dotId;
         }
 
         void OnDestroy()
         {
-            RedDotManager.instance.UnRegisterRedDot(DotId, this);
+            RedDotManager.Instance.UnRegisterRedDot(dotId, this);
         }
 
         //刷新红点显示
         public void RefreshActive()
         {
-            gameObject.SetActive(RedDotManager.instance.IsActive(DotId));
+            gameObject.SetActive(RedDotManager.Instance.IsActive(dotId));
         }
     }
 
