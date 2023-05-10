@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b964237245174e239d904720ff9a526, type: 3}
   m_Name: Local Storage Data
   m_EditorClassIdentifier: 
-  money: 123
-  moneyList: 0000000000000000000000000000000000000000
+  money: 670
+  moneyList: 
   test:
     ID: 0
     Name: 
