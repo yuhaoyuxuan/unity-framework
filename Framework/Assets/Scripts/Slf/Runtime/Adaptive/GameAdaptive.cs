@@ -69,7 +69,7 @@ namespace Slf
             Lv = level;
             if (level == DevicePerformanceLevel.High)
             {
-                //设置垂直同步方案，VSyncs数值需要在每帧之间传递，使用0为不等待垂直同步。值必须是0，1或2。
+                //设置垂直同步方案，VSyncs数值需要在每帧之间传递，使用0为不等待垂直同步。值必须是0，1或2。  0。自定义  1。 60帧 2。30帧
                 QualitySettings.vSyncCount = 1;
                 //设置固定帧率 
                 Application.targetFrameRate = 30;
