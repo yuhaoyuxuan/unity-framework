@@ -21,4 +21,20 @@ public class UIScene : MonoBehaviour
             UIManager.Instance.ShowView(1);
         });
     }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            RedDotManager.Instance.SetAcive(1, !RedDotManager.Instance.CheckState(1));
+        }
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            RedDotManager.Instance.SetAcive(2, !RedDotManager.Instance.CheckState(2));
+        }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            RedDotManager.Instance.SetAcive(3, !RedDotManager.Instance.CheckState(3));
+        }
+    }
 }

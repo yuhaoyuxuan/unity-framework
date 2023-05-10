@@ -27,22 +27,17 @@ namespace Slf
     public class RedDotManager : Singleton<RedDotManager>
     {
         //红点的子项 
-        private Dictionary<int, List<int>> childDic;
+        private Dictionary<int, List<int>> parentToChildListDic = new Dictionary<int, List<int>>();
         //红点的父项
-        private Dictionary<int, int> parentDic;
+        private Dictionary<int, int> childToParentDic = new Dictionary<int, int>();
         //红点id 状态
-        private Dictionary<int, bool> boolDic;
+        private Dictionary<int, bool> redDotStateDic = new Dictionary<int, bool>();
         //红点的组件
-        private Dictionary<int, List<ARedDot>> cpDic;
+        private Dictionary<int, List<ARedDot>> idToComponentListDic = new Dictionary<int, List<ARedDot>>();
 
 
-        public void Init()
+        public override void Init()
         {
-            childDic = new Dictionary<int, List<int>>();
-            parentDic = new Dictionary<int, int>();
-            cpDic = new Dictionary<int, List<ARedDot>>();
-            boolDic = new Dictionary<int, bool>();
-
             InitRegister();
         }
 
@@ -53,23 +48,18 @@ namespace Slf
             List<RedDotData> tempList = new List<RedDotData>()
             {
                 new RedDotData(1),
-                new RedDotData(2, 1),
+                new RedDotData(2),
+                new RedDotData(3,1),
             };
 
+            CreateRegister(tempList);
+        }
 
-            RedDotData temp;
+        public void CreateRegister(List<RedDotData> tempList)
+        {
             for (int i = 0; i < tempList.Count; i++)
             {
-                temp = tempList[i];
-                if (temp.ParentID == 0) { continue; }
-
-
-                parentDic.Add(temp.ID, temp.ParentID);
-                if (!childDic.ContainsKey(temp.ParentID))
-                {
-                    childDic.Add(temp.ParentID, new List<int>());
-                }
-                childDic[temp.ParentID].Add(temp.ID);
+                CreateRegister(tempList[i]);
             }
         }
 
@@ -81,13 +71,14 @@ namespace Slf
         {
             if (temp.ParentID == 0) { return; }
 
-            parentDic.Add(temp.ID, temp.ParentID);
-            if (!childDic.ContainsKey(temp.ParentID))
+            childToParentDic.Add(temp.ID, temp.ParentID);
+            if (!parentToChildListDic.ContainsKey(temp.ParentID))
             {
-                childDic.Add(temp.ParentID, new List<int>());
+                parentToChildListDic.Add(temp.ParentID, new List<int>());
             }
-            childDic[temp.ParentID].Add(temp.ID);
+            parentToChildListDic[temp.ParentID].Add(temp.ID);
         }
+
 
 
         //注册
@@ -100,11 +91,11 @@ namespace Slf
             }
 
             UnRegisterRedDot(dotId, reddot);
-            if (!cpDic.ContainsKey(dotId))
+            if (!idToComponentListDic.ContainsKey(dotId))
             {
-                cpDic.Add(dotId, new List<ARedDot>());
+                idToComponentListDic.Add(dotId, new List<ARedDot>());
             }
-            cpDic[dotId].Add(reddot);
+            idToComponentListDic[dotId].Add(reddot);
             RefreshRedDot(dotId);
         }
 
@@ -113,10 +104,10 @@ namespace Slf
         {
             if (dotId == 0) { return; }
 
-            if (cpDic == null || !cpDic.ContainsKey(dotId) || cpDic[dotId].Count < 1) { return; }
+            if (idToComponentListDic == null || !idToComponentListDic.ContainsKey(dotId) || idToComponentListDic[dotId].Count < 1) { return; }
 
 
-            List<ARedDot> list = cpDic[dotId];
+            List<ARedDot> list = idToComponentListDic[dotId];
 
             for (int i = list.Count - 1; i >= 0; i--)
             {
@@ -132,37 +123,58 @@ namespace Slf
         {
             if (dotId == 0) { return; }
 
-            if (!boolDic.ContainsKey(dotId))
+            if (!redDotStateDic.ContainsKey(dotId))
             {
-                boolDic.Add(dotId, show);
+                redDotStateDic.Add(dotId, show);
             }
             else
             {
-                if (boolDic[dotId] == show)
+                if (redDotStateDic[dotId] == show)
                 {
                     return;
                 }
-                boolDic[dotId] = show;
+                redDotStateDic[dotId] = show;
             }
 
             RefreshRedDot(dotId);
         }
 
-        //检测红点状态
+        /// <summary>
+        /// 检测红点状态
+        /// </summary>
+        /// <param name="dotId"></param>
+        /// <returns></returns>
+        public bool CheckState(int dotId)
+        {
+            if (dotId == 0) { return false; }
+
+            if (redDotStateDic.ContainsKey(dotId))
+            {
+                return redDotStateDic[dotId];
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 检测红点状态 如果未激活 递归检测子项如果有激活 为true  否则false
+        /// </summary>
+        /// <param name="dotId"></param>
+        /// <returns></returns>
         public bool IsActive(int dotId)
         {
             if (dotId == 0) { return false; }
 
             //检测本身
-            if (boolDic.ContainsKey(dotId) && boolDic[dotId] == true)
+            if (CheckState(dotId))
             {
-                return boolDic[dotId];
+                return true;
             }
 
-            if (childDic.ContainsKey(dotId))
+            //递归检测子项状态
+            if (parentToChildListDic.ContainsKey(dotId))
             {
-                //递归检测 孩子/孙子 状态
-                List<int> childList = childDic[dotId];
+                List<int> childList = parentToChildListDic[dotId];
                 bool boo;
                 for (int i = 0; i < childList.Count; i++)
                 {
@@ -182,18 +194,18 @@ namespace Slf
             if (dotId == 0) { return; }
 
             //刷新红点组件
-            if (cpDic.ContainsKey(dotId))
+            if (idToComponentListDic.ContainsKey(dotId))
             {
-                for (int i = 0; i < cpDic[dotId].Count; i++)
+                for (int i = 0; i < idToComponentListDic[dotId].Count; i++)
                 {
-                    cpDic[dotId][i].RefreshActive();
+                    idToComponentListDic[dotId][i].RefreshActive();
                 }
             }
 
             //递归刷新父/父父 红点组件
-            if (parentDic.ContainsKey(dotId))
+            if (childToParentDic.ContainsKey(dotId))
             {
-                int parentId = parentDic[dotId];
+                int parentId = childToParentDic[dotId];
                 RefreshRedDot(parentId);
             }
         }

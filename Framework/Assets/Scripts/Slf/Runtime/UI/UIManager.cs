@@ -51,6 +51,7 @@ namespace Slf
             TimerManager.Instance.Init();
             ResManager.Instance.Init();
             PubSubManager.Instance.Init();
+            RedDotManager.Instance.Init();
         }
 
         /// <summary>
